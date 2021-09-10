@@ -35,7 +35,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * Reactive streams back-pressure works on its backing [flow] too.
  */
 @OptIn(InternalCoroutinesApi::class)
-internal class FlowCollectingPublisher<T : Any>(
+class FlowCollectingPublisher<T : Any>(
     private val flow: Flow<T>,
     private val ctx: ServiceRequestContext,
     context: CoroutineContext = EmptyCoroutineContext

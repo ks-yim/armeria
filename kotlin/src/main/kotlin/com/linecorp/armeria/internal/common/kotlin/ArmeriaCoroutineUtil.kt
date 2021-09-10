@@ -71,11 +71,11 @@ internal fun callKotlinSuspendingMethod(
  * Converts [Flow] into [Publisher].
  * @see FlowCollectingPublisher
  */
-internal fun <T : Any> Flow<T>.asPublisher(
+fun <T : Any> Flow<T>.asPublisher(
     executorService: ExecutorService,
     ctx: ServiceRequestContext
 ): Publisher<T> = FlowCollectingPublisher(this, ctx, newCoroutineCtx(executorService, ctx))
 
-private fun newCoroutineCtx(executorService: ExecutorService, ctx: ServiceRequestContext) =
+fun newCoroutineCtx(executorService: ExecutorService, ctx: ServiceRequestContext) =
     // if `coroutineContext` contains a coroutine dispatcher, executorService is not used.
     executorService.asCoroutineDispatcher() + (CoroutineContexts.get(ctx) ?: EmptyCoroutineContext)
