@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -26,6 +27,7 @@ import java.util.function.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.common.util.Sampler;
 import com.linecorp.armeria.common.util.TlsEngineType;
 import com.linecorp.armeria.common.util.TransportType;
@@ -257,8 +259,8 @@ final class DefaultFlagsProvider implements FlagsProvider {
     }
 
     @Override
-    public Boolean defaultUseHttp2Preface() {
-        return true;
+    public Set<UseHttp2PrefaceOption> defaultUseHttp2Preface() {
+        return UseHttp2PrefaceOption.allOf();
     }
 
     @Override

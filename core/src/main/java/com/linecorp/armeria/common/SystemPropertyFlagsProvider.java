@@ -17,6 +17,7 @@ package com.linecorp.armeria.common;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Sets.toImmutableEnumSet;
 
 import java.net.InetAddress;
 import java.nio.file.Path;
@@ -36,6 +37,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.common.util.InetAddressPredicates;
 import com.linecorp.armeria.common.util.Sampler;
@@ -242,8 +244,22 @@ final class SystemPropertyFlagsProvider implements FlagsProvider {
     }
 
     @Override
-    public Boolean defaultUseHttp2Preface() {
-        return getBoolean("defaultUseHttp2Preface");
+    public Set<UseHttp2PrefaceOption> defaultUseHttp2Preface() {
+        final String val = getNormalized("defaultUseHttp2Preface");
+        if (val == null) {
+            return null;
+        }
+        // "true" & "false" options are for backward compatibility with < 1.29.0
+        if ("all".equalsIgnoreCase(val) || val.equals(Boolean.TRUE.toString())) {
+            return UseHttp2PrefaceOption.allOf();
+        }
+        if ("none".equalsIgnoreCase(val) || val.equals(Boolean.FALSE.toString())) {
+            return UseHttp2PrefaceOption.noneOf();
+        }
+
+        return Streams.stream(CSV_SPLITTER.split(val))
+                      .map(feature -> UseHttp2PrefaceOption.valueOf(Ascii.toUpperCase(feature)))
+                      .collect(toImmutableEnumSet());
     }
 
     @Override
@@ -442,10 +458,9 @@ final class SystemPropertyFlagsProvider implements FlagsProvider {
         if (val == null) {
             return null;
         }
-        return Sets.immutableEnumSet(
-                Streams.stream(CSV_SPLITTER.split(val))
-                       .map(feature -> TransientServiceOption.valueOf(Ascii.toUpperCase(feature)))
-                       .collect(toImmutableSet()));
+        return Streams.stream(CSV_SPLITTER.split(val))
+                      .map(feature -> TransientServiceOption.valueOf(Ascii.toUpperCase(feature)))
+                      .collect(toImmutableEnumSet());
     }
 
     @Override

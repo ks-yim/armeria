@@ -17,6 +17,11 @@
 
 package com.linecorp.armeria.client.kubernetes;
 
+import static java.util.Collections.emptySet;
+
+import java.util.Set;
+
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.common.FlagsProvider;
 
 public final class KubernetesTestFlagsProvider implements FlagsProvider {
@@ -34,7 +39,7 @@ public final class KubernetesTestFlagsProvider implements FlagsProvider {
      * Use HTTP/1.1 Upgrade requests for test convenience. The Kubernetes mock server does not support HTTP/2.
      */
     @Override
-    public Boolean defaultUseHttp2Preface() {
-        return false;
+    public Set<UseHttp2PrefaceOption> defaultUseHttp2Preface() {
+        return emptySet();
     }
 }

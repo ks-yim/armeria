@@ -116,7 +116,7 @@ final class HttpClientFactory implements ClientFactory {
     private final long pingIntervalMillis;
     private final long maxConnectionAgeMillis;
     private final int maxNumRequestsPerConnection;
-    private final boolean useHttp2Preface;
+    private final Set<UseHttp2PrefaceOption> useHttp2Preface;
     private final boolean useHttp2WithoutAlpn;
     private final boolean useHttp1Pipelining;
     private final ConnectionPoolListener connectionPoolListener;
@@ -283,7 +283,7 @@ final class HttpClientFactory implements ClientFactory {
         return maxNumRequestsPerConnection;
     }
 
-    boolean useHttp2Preface() {
+    Set<UseHttp2PrefaceOption> useHttp2Preface() {
         return useHttp2Preface;
     }
 

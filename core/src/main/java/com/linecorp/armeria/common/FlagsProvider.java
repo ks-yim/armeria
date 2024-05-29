@@ -34,6 +34,7 @@ import com.github.benmanes.caffeine.cache.CaffeineSpec;
 import com.linecorp.armeria.client.ClientBuilder;
 import com.linecorp.armeria.client.ClientFactoryBuilder;
 import com.linecorp.armeria.client.DnsResolverGroupBuilder;
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.client.retry.Backoff;
 import com.linecorp.armeria.client.retry.RetryingClient;
 import com.linecorp.armeria.client.retry.RetryingRpcClient;
@@ -476,9 +477,20 @@ public interface FlagsProvider {
      *
      * <p>This flag is enabled by default. Specify the
      * {@code -Dcom.linecorp.armeria.defaultUseHttp2Preface=false} JVM option to disable it.
+     *
+     * Returns the default value of the {@link ClientFactoryBuilder#useHttp2Preface(Set)} option.
+     *
+     * Returns the {@link Set} of {@link TransientServiceOption}s that are enabled for a
+     * {@link TransientService}.
+     *
+     * <p>The default value of this flag is an empty string, which means all
+     * {@link TransientServiceOption}s are disabled.
+     * Specify the {@code -Dcom.linecorp.armeria.transientServiceOptions=<csv>} JVM option
+     * to override the default value. For example,
+     * {@code -Dcom.linecorp.armeria.transientServiceOptions=WITH_METRIC_COLLECTION,WITH_ACCESS_LOGGING}.
      */
     @Nullable
-    default Boolean defaultUseHttp2Preface() {
+    default Set<UseHttp2PrefaceOption> defaultUseHttp2Preface() {
         return null;
     }
 

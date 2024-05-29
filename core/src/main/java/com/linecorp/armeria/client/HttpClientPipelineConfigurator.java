@@ -31,6 +31,7 @@ import static io.netty.handler.codec.http2.Http2CodecUtil.DEFAULT_WINDOW_SIZE;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.net.ssl.SSLEngine;
@@ -147,6 +148,8 @@ final class HttpClientPipelineConfigurator extends ChannelDuplexHandler {
     private final SessionProtocol http1;
     private final SessionProtocol http2;
 
+    private final boolean shouldUseHttp2Preface;
+
     HttpClientPipelineConfigurator(HttpClientFactory clientFactory,
                                    boolean webSocket, SessionProtocol sessionProtocol,
                                    @Nullable SslContext sslCtx) {
@@ -172,6 +175,28 @@ final class HttpClientPipelineConfigurator extends ChannelDuplexHandler {
             this.sslCtx = null;
             http1 = H1C;
             http2 = H2C;
+        }
+
+        final Set<UseHttp2PrefaceOption> useHttp2PrefaceOptions = clientFactory.useHttp2Preface();
+        if (useHttp2PrefaceOptions.isEmpty()) {
+            shouldUseHttp2Preface = false;
+            return;
+        }
+        switch (sessionProtocol) {
+            case HTTP:
+                shouldUseHttp2Preface = useHttp2PrefaceOptions.contains(UseHttp2PrefaceOption.HTTP);
+                return;
+            case H2C:
+                shouldUseHttp2Preface = useHttp2PrefaceOptions.contains(UseHttp2PrefaceOption.H2C);
+                return;
+            case HTTPS:
+                shouldUseHttp2Preface = useHttp2PrefaceOptions.contains(UseHttp2PrefaceOption.HTTPS);
+                return;
+            case H2:
+                shouldUseHttp2Preface = useHttp2PrefaceOptions.contains(UseHttp2PrefaceOption.H2);
+                return;
+            default:
+                shouldUseHttp2Preface = false;
         }
     }
 
@@ -356,7 +381,7 @@ final class HttpClientPipelineConfigurator extends ChannelDuplexHandler {
 
     private void configureUpgradeCodec(Channel ch, Consumer<ChannelHandler> pipelineCustomizer) {
         final Http2ClientConnectionHandler http2Handler = newHttp2ConnectionHandler(ch, http2);
-        if (clientFactory.useHttp2Preface()) {
+        if (shouldUseHttp2Preface) {
             pipelineCustomizer.accept(new DowngradeHandler());
             pipelineCustomizer.accept(http2Handler);
         } else {

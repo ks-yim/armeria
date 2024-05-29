@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableList;
 import com.linecorp.armeria.client.ClientBuilder;
 import com.linecorp.armeria.client.ClientFactoryBuilder;
 import com.linecorp.armeria.client.DnsResolverGroupBuilder;
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.client.retry.Backoff;
 import com.linecorp.armeria.client.retry.RetryingClient;
 import com.linecorp.armeria.client.retry.RetryingRpcClient;
@@ -305,7 +306,7 @@ public final class Flags {
             getValue(FlagsProvider::defaultHttp1MaxChunkSize,
                      "defaultHttp1MaxChunkSize", value -> value >= 0);
 
-    private static final boolean DEFAULT_USE_HTTP2_PREFACE =
+    private static final Set<UseHttp2PrefaceOption> DEFAULT_USE_HTTP2_PREFACE =
             getValue(FlagsProvider::defaultUseHttp2Preface, "defaultUseHttp2Preface");
 
     private static final boolean DEFAULT_PREFER_HTTP1 =
@@ -860,7 +861,7 @@ public final class Flags {
      * <p>This flag is enabled by default. Specify the
      * {@code -Dcom.linecorp.armeria.defaultUseHttp2Preface=false} JVM option to disable it.
      */
-    public static boolean defaultUseHttp2Preface() {
+    public static Set<UseHttp2PrefaceOption> defaultUseHttp2Preface() {
         return DEFAULT_USE_HTTP2_PREFACE;
     }
 

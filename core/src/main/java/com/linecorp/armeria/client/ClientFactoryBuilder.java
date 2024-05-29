@@ -22,6 +22,8 @@ import static io.netty.handler.codec.http2.Http2CodecUtil.DEFAULT_WINDOW_SIZE;
 import static io.netty.handler.codec.http2.Http2CodecUtil.MAX_FRAME_SIZE_LOWER_BOUND;
 import static io.netty.handler.codec.http2.Http2CodecUtil.MAX_FRAME_SIZE_UPPER_BOUND;
 import static io.netty.handler.codec.http2.Http2CodecUtil.MAX_INITIAL_WINDOW_SIZE;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 
 import java.io.ByteArrayInputStream;
@@ -36,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,6 +56,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 
@@ -136,7 +140,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * If not set, {@linkplain CommonPools#workerGroup() the common worker group} is used.
      *
      * @param shutdownOnClose whether to shut down the worker {@link EventLoopGroup}
-     *                        when the {@link ClientFactory} is closed
+     * when the {@link ClientFactory} is closed
      */
     public ClientFactoryBuilder workerGroup(EventLoopGroup workerGroup, boolean shutdownOnClose) {
         option(ClientFactoryOptions.WORKER_GROUP, requireNonNull(workerGroup, "workerGroup"));
@@ -448,7 +452,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * more information. This option is disabled by default.
      *
      * @deprecated It's not recommended to enable this option. Use it only when you have no other way to
-     *             communicate with an insecure peer than this.
+     * communicate with an insecure peer than this.
      */
     @Deprecated
     public ClientFactoryBuilder tlsAllowUnsafeCiphers() {
@@ -468,7 +472,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * @param tlsAllowUnsafeCiphers Whether to allow the unsafe ciphers
      *
      * @deprecated It's not recommended to enable this option. Use it only when you have no other way to
-     *             communicate with an insecure peer than this.
+     * communicate with an insecure peer than this.
      */
     @Deprecated
     public ClientFactoryBuilder tlsAllowUnsafeCiphers(boolean tlsAllowUnsafeCiphers) {
@@ -667,7 +671,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * {@code 0} means the client will not send a PING.
      *
      * @throws IllegalArgumentException if the specified {@code pingIntervalMillis} is smaller than
-     *                                  {@value #MIN_PING_INTERVAL_MILLIS} milliseconds.
+     * {@value #MIN_PING_INTERVAL_MILLIS} milliseconds.
      */
     public ClientFactoryBuilder pingIntervalMillis(long pingIntervalMillis) {
         checkArgument(pingIntervalMillis == 0 || pingIntervalMillis >= MIN_PING_INTERVAL_MILLIS,
@@ -691,7 +695,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * {@code 0} means the client will not send a PING.
      *
      * @throws IllegalArgumentException if the specified {@code pingInterval} is smaller than
-     *                                  {@value #MIN_PING_INTERVAL_MILLIS} milliseconds.
+     * {@value #MIN_PING_INTERVAL_MILLIS} milliseconds.
      */
     public ClientFactoryBuilder pingInterval(Duration pingInterval) {
         pingIntervalMillis(requireNonNull(pingInterval, "pingInterval").toMillis());
@@ -704,8 +708,9 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * This option is disabled by default, which means unlimited.
      *
      * @param maxConnectionAgeMillis the maximum connection age in millis. {@code 0} disables the limit.
+     *
      * @throws IllegalArgumentException if the specified {@code maxConnectionAgeMillis} is smaller than
-     *                                  {@value #MIN_MAX_CONNECTION_AGE_MILLIS} milliseconds.
+     * {@value #MIN_MAX_CONNECTION_AGE_MILLIS} milliseconds.
      */
     public ClientFactoryBuilder maxConnectionAgeMillis(long maxConnectionAgeMillis) {
         checkArgument(maxConnectionAgeMillis >= MIN_MAX_CONNECTION_AGE_MILLIS || maxConnectionAgeMillis == 0,
@@ -721,8 +726,9 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * This option is disabled by default, which means unlimited.
      *
      * @param maxConnectionAge the maximum connection age. {@code 0} disables the limit.
+     *
      * @throws IllegalArgumentException if the specified {@code maxConnectionAge} is smaller than
-     *                                  {@value #MIN_MAX_CONNECTION_AGE_MILLIS} milliseconds.
+     * {@value #MIN_MAX_CONNECTION_AGE_MILLIS} milliseconds.
      */
     public ClientFactoryBuilder maxConnectionAge(Duration maxConnectionAge) {
         return maxConnectionAgeMillis(requireNonNull(maxConnectionAge, "maxConnectionAge").toMillis());
@@ -733,7 +739,7 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * This option is disabled by default, which means unlimited.
      *
      * @param maxNumRequestsPerConnection the maximum number of requests per connection.
-     *                                    {@code 0} disables the limit.
+     * {@code 0} disables the limit.
      */
     public ClientFactoryBuilder maxNumRequestsPerConnection(int maxNumRequestsPerConnection) {
         checkArgument(maxNumRequestsPerConnection >= 0, "maxNumRequestsPerConnection: %s (expected: >= 0)",
@@ -746,8 +752,19 @@ public final class ClientFactoryBuilder implements TlsSetters {
      * Sets whether to send an HTTP/2 preface string instead of an HTTP/1 upgrade request to negotiate
      * the protocol version of a cleartext HTTP connection.
      */
+    // TODO(ks-yim): Should we add @deprecate annotation on this?
     public ClientFactoryBuilder useHttp2Preface(boolean useHttp2Preface) {
-        option(ClientFactoryOptions.USE_HTTP2_PREFACE, useHttp2Preface);
+        useHttp2Preface(useHttp2Preface ? UseHttp2PrefaceOption.allOf()
+                                        : UseHttp2PrefaceOption.noneOf());
+        return this;
+    }
+
+    /**
+     * Sets whether to send an HTTP/2 preface string instead of an HTTP/1 upgrade request to negotiate
+     * the protocol version of a cleartext HTTP connection.
+     */
+    public ClientFactoryBuilder useHttp2Preface(Set<UseHttp2PrefaceOption> protocols) {
+        option(ClientFactoryOptions.USE_HTTP2_PREFACE, protocols);
         return this;
     }
 

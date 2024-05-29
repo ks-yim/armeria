@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -209,7 +210,7 @@ public final class ClientFactoryOptions
      * Whether to send an HTTP/2 preface string instead of an HTTP/1 upgrade request to negotiate
      * the protocol version of a cleartext HTTP connection.
      */
-    public static final ClientFactoryOption<Boolean> USE_HTTP2_PREFACE =
+    public static final ClientFactoryOption<Set<UseHttp2PrefaceOption>> USE_HTTP2_PREFACE =
             ClientFactoryOption.define("USE_HTTP2_PREFACE", Flags.defaultUseHttp2Preface());
 
     /**
@@ -518,10 +519,10 @@ public final class ClientFactoryOptions
     }
 
     /**
-     * Returns whether to send an HTTP/2 preface string instead of an HTTP/1 upgrade request to negotiate
-     * the protocol version of a cleartext HTTP connection.
+     * Returns on which protocols the client will send an HTTP/2 preface string
+     * instead of an HTTP/1 upgrade request to negotiate the protocol version of a cleartext HTTP connection.
      */
-    public boolean useHttp2Preface() {
+    public Set<UseHttp2PrefaceOption> useHttp2Preface() {
         return get(USE_HTTP2_PREFACE);
     }
 

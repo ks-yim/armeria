@@ -31,6 +31,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import com.linecorp.armeria.client.UseHttp2PrefaceOption;
 import com.linecorp.armeria.common.util.Exceptions;
 import com.linecorp.armeria.common.util.Sampler;
 import com.linecorp.armeria.common.util.TlsEngineType;
@@ -163,13 +165,38 @@ class FlagsTest {
     @Test
     @ClearSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface")
     void defaultValueOfDefaultUseHttp2Preface() throws Throwable {
-        assertFlags("defaultUseHttp2Preface").isEqualTo(true);
+        assertFlags("defaultUseHttp2Preface").isEqualTo(EnumSet.allOf(UseHttp2PrefaceOption.class));
+    }
+
+    @Test
+    @SetSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface", value = "true")
+    void systemPropertyDefaultUseHttp2PrefaceLegacyTrue() throws Throwable {
+        assertFlags("defaultUseHttp2Preface").isEqualTo(ImmutableSet.of());
     }
 
     @Test
     @SetSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface", value = "false")
+    void systemPropertyDefaultUseHttp2PrefaceLegacyFalse() throws Throwable {
+        assertFlags("defaultUseHttp2Preface").isEqualTo(ImmutableSet.of());
+    }
+
+    @Test
+    @SetSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface", value = "h2c, http")
     void systemPropertyDefaultUseHttp2Preface() throws Throwable {
-        assertFlags("defaultUseHttp2Preface").isEqualTo(false);
+        assertFlags("defaultUseHttp2Preface").isEqualTo(
+                ImmutableSet.of(UseHttp2PrefaceOption.H2C, UseHttp2PrefaceOption.HTTP));
+    }
+
+    @Test
+    @SetSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface", value = "all")
+    void systemPropertyDefaultUseHttp2PrefaceAll() throws Throwable {
+        assertFlags("defaultUseHttp2Preface").isEqualTo(ImmutableSet.of());
+    }
+
+    @Test
+    @SetSystemProperty(key = "com.linecorp.armeria.defaultUseHttp2Preface", value = "none")
+    void systemPropertyDefaultUseHttp2PrefaceNone() throws Throwable {
+        assertFlags("defaultUseHttp2Preface").isEqualTo(ImmutableSet.of());
     }
 
     @Test
